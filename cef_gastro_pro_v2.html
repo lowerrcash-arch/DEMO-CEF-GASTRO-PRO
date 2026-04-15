@@ -1,0 +1,1144 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CEF · Sistema Pro · Gastronomía</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=DM+Sans:wght@300;400;500&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --black:#08090C;--dark:#0F1218;--card:#161B26;--card2:#1E2535;
+  --blue:#1A6BF5;--blue-h:#3D86FF;
+  --green:#10B981;--red:#EF4444;--gold:#D4943A;--gold-l:#F0B04A;--purple:#8B5CF6;
+  --white:#FFF;--w90:#E8EDF5;--w70:#A8B4C8;--w40:#5A6478;
+  --border:#252D3E;--borderb:rgba(26,107,245,.25);
+  --b10:rgba(26,107,245,.1);--b20:rgba(26,107,245,.2);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html{font-size:14px;}
+body{font-family:'DM Sans',sans-serif;background:var(--black);color:var(--white);overflow-x:hidden;-webkit-font-smoothing:antialiased;}
+.shell{display:flex;height:100vh;overflow:hidden;}
+
+/* SIDEBAR */
+.sidebar{width:210px;flex-shrink:0;background:var(--dark);border-right:1px solid var(--border);display:flex;flex-direction:column;overflow-y:auto;}
+.sb-logo{padding:1.2rem 1rem .9rem;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:.65rem;}
+.sb-ring{width:28px;height:28px;border-radius:50%;border:1.5px solid var(--blue);background:var(--b10);display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-weight:800;font-size:.6rem;flex-shrink:0;}
+.sb-name{font-family:'Syne',sans-serif;font-weight:700;font-size:.82rem;}
+.sb-sub{font-family:'JetBrains Mono',monospace;font-size:.5rem;color:var(--w40);letter-spacing:.08em;display:block;margin-top:.05rem;}
+.sb-sec{padding:.55rem .8rem .2rem;font-family:'JetBrains Mono',monospace;font-size:.5rem;letter-spacing:.15em;color:var(--w40);text-transform:uppercase;}
+.sb-item{display:flex;align-items:center;gap:.6rem;padding:.55rem .9rem;font-size:.78rem;color:var(--w70);cursor:pointer;border-radius:6px;margin:0 .35rem .08rem;transition:background .15s,color .15s;position:relative;}
+.sb-item:hover{background:var(--card);color:var(--white);}
+.sb-item.active{background:var(--b10);color:var(--white);border:1px solid var(--borderb);}
+.sb-item.active::before{content:'';position:absolute;left:0;top:20%;bottom:20%;width:2px;background:var(--blue);border-radius:2px;}
+.sb-ico{font-size:.9rem;width:16px;text-align:center;}
+
+/* MAIN */
+.main{flex:1;display:flex;flex-direction:column;overflow:hidden;}
+.topbar{height:50px;flex-shrink:0;background:var(--dark);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 1.6rem;}
+.tb-title{font-family:'Syne',sans-serif;font-weight:700;font-size:.9rem;}
+.tb-right{display:flex;align-items:center;gap:.7rem;}
+.tb-tag{font-family:'JetBrains Mono',monospace;font-size:.58rem;letter-spacing:.1em;color:var(--gold-l);padding:.18rem .55rem;background:rgba(212,148,58,.1);border:1px solid rgba(212,148,58,.2);border-radius:100px;}
+.tb-date{font-family:'JetBrains Mono',monospace;font-size:.62rem;color:var(--w40);}
+.content{flex:1;overflow-y:auto;padding:1.4rem 1.6rem;}
+
+/* TABS */
+.tabs{display:none;flex-direction:column;gap:1.2rem;}
+.tabs.active{display:flex;}
+
+/* KPI */
+.kpi-row{display:grid;grid-template-columns:repeat(4,1fr);gap:.8rem;}
+.kpi{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:1rem 1.1rem;position:relative;overflow:hidden;}
+.kpi::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;}
+.kpi.blue::before{background:var(--blue);}
+.kpi.green::before{background:var(--green);}
+.kpi.gold::before{background:var(--gold);}
+.kpi.red::before{background:var(--red);}
+.kpi.purple::before{background:var(--purple);}
+.kpi-label{font-family:'JetBrains Mono',monospace;font-size:.56rem;letter-spacing:.12em;color:var(--w40);text-transform:uppercase;margin-bottom:.35rem;display:block;}
+.kpi-val{font-family:'Syne',sans-serif;font-weight:800;font-size:1.45rem;color:var(--white);line-height:1;margin-bottom:.2rem;}
+.kpi-sub{font-size:.7rem;color:var(--w70);}
+.kpi-trend{font-family:'JetBrains Mono',monospace;font-size:.58rem;margin-top:.25rem;display:block;}
+.up{color:var(--green);} .dn{color:var(--red);}
+
+/* SECTION HEAD */
+.sh{display:flex;align-items:center;justify-content:space-between;margin-bottom:.8rem;flex-wrap:wrap;gap:.5rem;}
+.sh-title{font-family:'Syne',sans-serif;font-weight:700;font-size:.9rem;}
+.sh-actions{display:flex;gap:.4rem;flex-wrap:wrap;}
+
+/* BUTTONS */
+.btn{display:inline-flex;align-items:center;gap:.3rem;padding:.42rem .85rem;border-radius:6px;border:none;cursor:pointer;font-family:'DM Sans',sans-serif;font-weight:500;font-size:.73rem;transition:background .15s,transform .12s;}
+.btn:hover{transform:translateY(-1px);}
+.btn-blue{background:var(--blue);color:var(--white);}
+.btn-blue:hover{background:var(--blue-h);}
+.btn-ghost{background:var(--card2);color:var(--w70);border:1px solid var(--border);}
+.btn-ghost:hover{color:var(--white);}
+.btn-green{background:rgba(16,185,129,.15);color:#6EE7B7;border:1px solid rgba(16,185,129,.2);}
+.btn-red{background:rgba(239,68,68,.12);color:#FCA5A5;border:1px solid rgba(239,68,68,.2);}
+.btn-purple{background:rgba(139,92,246,.15);color:#C4B5FD;border:1px solid rgba(139,92,246,.25);}
+.btn-xs{padding:.25rem .55rem;font-size:.66rem;}
+
+/* TABLE */
+.tw{background:var(--card);border:1px solid var(--border);border-radius:10px;overflow:hidden;}
+.tw table{width:100%;border-collapse:collapse;}
+.tw thead{background:var(--card2);}
+.tw th{padding:.62rem .9rem;text-align:left;font-family:'JetBrains Mono',monospace;font-size:.57rem;letter-spacing:.12em;color:var(--w40);text-transform:uppercase;border-bottom:1px solid var(--border);white-space:nowrap;}
+.tw td{padding:.65rem .9rem;font-size:.78rem;color:var(--w90);border-bottom:1px solid var(--border);vertical-align:middle;}
+.tw tr:last-child td{border-bottom:none;}
+.tw tr:hover td{background:rgba(255,255,255,.015);}
+.td-n{font-family:'JetBrains Mono',monospace;font-size:.76rem;}
+.td-g{color:var(--green);} .td-r{color:var(--red);} .td-go{color:var(--gold-l);} .td-pu{color:#C4B5FD;}
+
+/* BADGES */
+.badge{display:inline-block;padding:.13rem .5rem;border-radius:100px;font-family:'JetBrains Mono',monospace;font-size:.56rem;letter-spacing:.06em;}
+.bg{background:rgba(16,185,129,.12);color:#6EE7B7;border:1px solid rgba(16,185,129,.2);}
+.br{background:rgba(239,68,68,.12);color:#FCA5A5;border:1px solid rgba(239,68,68,.2);}
+.bo{background:rgba(212,148,58,.12);color:var(--gold-l);border:1px solid rgba(212,148,58,.2);}
+.bb{background:var(--b10);color:#93C5FD;border:1px solid var(--b20);}
+.bp{background:rgba(139,92,246,.12);color:#C4B5FD;border:1px solid rgba(139,92,246,.25);}
+
+/* MODAL */
+.modal-bg{display:none;position:fixed;inset:0;z-index:500;background:rgba(0,0,0,.75);backdrop-filter:blur(4px);align-items:center;justify-content:center;}
+.modal-bg.open{display:flex;}
+.modal{background:var(--card);border:1px solid var(--border);border-radius:14px;width:500px;max-width:95vw;max-height:88vh;display:flex;flex-direction:column;overflow:hidden;}
+.modal-lg{width:620px;}
+.modal-head{padding:1.1rem 1.3rem;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
+.modal-title{font-family:'Syne',sans-serif;font-weight:700;font-size:.92rem;}
+.modal-close{background:none;border:none;color:var(--w40);cursor:pointer;font-size:1rem;padding:.2rem;transition:color .15s;}
+.modal-close:hover{color:var(--white);}
+.modal-body{padding:1.3rem;overflow-y:auto;flex:1;}
+.modal-foot{padding:.9rem 1.3rem;border-top:1px solid var(--border);display:flex;justify-content:flex-end;gap:.5rem;}
+.field{margin-bottom:.9rem;}
+.field label{display:block;font-family:'JetBrains Mono',monospace;font-size:.58rem;letter-spacing:.12em;color:var(--w40);text-transform:uppercase;margin-bottom:.35rem;}
+.field input,.field select,.field textarea{width:100%;padding:.55rem .75rem;background:var(--dark);border:1px solid var(--border);border-radius:7px;color:var(--white);font-family:'DM Sans',sans-serif;font-size:.8rem;transition:border-color .15s;outline:none;}
+.field input:focus,.field select:focus,.field textarea:focus{border-color:var(--blue);}
+.field input::placeholder{color:var(--w40);}
+.field textarea{resize:vertical;min-height:60px;}
+.fr{display:grid;grid-template-columns:1fr 1fr;gap:.75rem;}
+.fr3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:.75rem;}
+
+/* INGREDIENT ROWS */
+.ing-list{display:flex;flex-direction:column;gap:.45rem;margin-bottom:.7rem;}
+.ing-row{display:grid;grid-template-columns:1fr 75px 60px 26px;gap:.4rem;align-items:center;}
+.ing-row input,.ing-row select{padding:.42rem .6rem;font-size:.76rem;}
+.ing-del{background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.2);color:#FCA5A5;border-radius:5px;cursor:pointer;display:flex;align-items:center;justify-content:center;width:26px;height:26px;font-size:.78rem;transition:background .15s;}
+.ing-del:hover{background:rgba(239,68,68,.25);}
+
+/* COST PREVIEW */
+.cost-prev{padding:.75rem 1rem;background:var(--dark);border:1px solid var(--border);border-radius:7px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:.5rem;}
+.cp-label{font-family:'JetBrains Mono',monospace;font-size:.58rem;color:var(--w40);letter-spacing:.1em;}
+.cp-val{font-family:'Syne',sans-serif;font-weight:700;font-size:1rem;}
+
+/* DISCOUNT PREVIEW */
+.disc-prev{padding:.75rem 1rem;background:rgba(16,185,129,.06);border:1px solid rgba(16,185,129,.15);border-radius:7px;display:grid;grid-template-columns:1fr 1fr 1fr;gap:.5rem;margin-top:.5rem;}
+.dp-item{text-align:center;}
+.dp-label{font-family:'JetBrains Mono',monospace;font-size:.55rem;color:var(--w40);letter-spacing:.08em;display:block;margin-bottom:.2rem;}
+.dp-val{font-family:'Syne',sans-serif;font-weight:700;font-size:.92rem;}
+
+/* CHARTS */
+.chart-row{display:grid;grid-template-columns:1fr 1fr;gap:.8rem;}
+.chart-box{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:1.1rem;}
+.chart-title{font-family:'Syne',sans-serif;font-weight:600;font-size:.83rem;margin-bottom:.9rem;}
+.bar-chart{display:flex;flex-direction:column;gap:.5rem;}
+.bar-item{display:flex;align-items:center;gap:.65rem;}
+.bar-label{font-size:.72rem;color:var(--w70);width:115px;flex-shrink:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.bar-track{flex:1;height:6px;background:var(--dark);border-radius:4px;overflow:hidden;}
+.bar-fill{height:100%;border-radius:4px;transition:width .6s ease;}
+.bar-val{font-family:'JetBrains Mono',monospace;font-size:.66rem;color:var(--w70);width:52px;text-align:right;flex-shrink:0;}
+
+/* PE BOX */
+.pe-box{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:1.2rem;display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;}
+.pe-item{text-align:center;}
+.pe-label{font-family:'JetBrains Mono',monospace;font-size:.55rem;letter-spacing:.1em;text-transform:uppercase;color:var(--w40);margin-bottom:.35rem;display:block;}
+.pe-val{font-family:'Syne',sans-serif;font-weight:800;font-size:1.2rem;}
+
+/* SCENARIOS */
+.esc-row{display:grid;grid-template-columns:repeat(3,1fr);gap:.8rem;}
+.esc{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:1.1rem;text-align:center;}
+.esc.act{border-color:var(--blue);}
+.esc-name{font-family:'JetBrains Mono',monospace;font-size:.6rem;letter-spacing:.12em;text-transform:uppercase;color:var(--w40);margin-bottom:.45rem;}
+.esc-val{font-family:'Syne',sans-serif;font-weight:800;font-size:1.4rem;margin-bottom:.2rem;}
+.esc-sub{font-size:.7rem;color:var(--w70);}
+
+/* MESAS */
+.mesa-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:.8rem;}
+.mesa-card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:1rem;cursor:pointer;transition:border-color .18s;}
+.mesa-card:hover{border-color:var(--blue);}
+.mesa-card.ocupada{border-color:rgba(16,185,129,.4);background:rgba(16,185,129,.04);}
+.mesa-card.cerrada{border-color:var(--border);opacity:.6;}
+.mesa-num{font-family:'Syne',sans-serif;font-weight:800;font-size:1.3rem;margin-bottom:.3rem;}
+.mesa-info{font-size:.72rem;color:var(--w70);}
+.mesa-total{font-family:'Syne',sans-serif;font-weight:700;font-size:.92rem;color:var(--green);margin-top:.4rem;}
+
+/* HORARIOS */
+.horario-row{display:flex;gap:.5rem;flex-wrap:wrap;margin-bottom:.8rem;}
+.horario-chip{padding:.3rem .75rem;border-radius:100px;font-size:.73rem;border:1px solid var(--border);background:var(--card2);color:var(--w70);cursor:pointer;transition:all .15s;}
+.horario-chip.on{background:var(--b10);border-color:var(--borderb);color:#93C5FD;}
+
+/* EMPTY */
+.empty{text-align:center;padding:2.5rem 1rem;display:flex;flex-direction:column;align-items:center;gap:.6rem;}
+.empty-ico{font-size:2.2rem;opacity:.35;}
+.empty-text{font-size:.8rem;color:var(--w40);}
+
+/* GASTOS FIJOS */
+.gf-row{display:flex;justify-content:space-between;align-items:center;padding:.65rem 0;border-bottom:1px solid var(--border);}
+.gf-row:last-child{border-bottom:none;}
+.gf-name{font-size:.8rem;color:var(--w90);}
+.gf-cat{font-size:.7rem;color:var(--w40);margin-top:.1rem;}
+.gf-monto{font-family:'Syne',sans-serif;font-weight:700;font-size:.9rem;}
+.gf-venc{font-family:'JetBrains Mono',monospace;font-size:.62rem;color:var(--w40);}
+</style>
+</head>
+<body>
+<div class="shell">
+
+<!-- SIDEBAR -->
+<aside class="sidebar">
+  <div class="sb-logo">
+    <div class="sb-ring">CEF</div>
+    <div><span class="sb-name">CEF</span><span class="sb-sub">PRO · GASTRONOMÍA</span></div>
+  </div>
+  <div class="sb-sec">Principal</div>
+  <div class="sb-item active" onclick="goTab('dashboard')"><span class="sb-ico">📊</span>Dashboard</div>
+  <div class="sb-item" onclick="goTab('ventas')"><span class="sb-ico">🪑</span>Ventas / Mesas</div>
+  <div class="sb-sec">Carta</div>
+  <div class="sb-item" onclick="goTab('materia')"><span class="sb-ico">🧂</span>Materia Prima</div>
+  <div class="sb-item" onclick="goTab('platos')"><span class="sb-ico">🍽️</span>Platos</div>
+  <div class="sb-item" onclick="goTab('combos')"><span class="sb-ico">🎁</span>Combos / Promos</div>
+  <div class="sb-sec">Operaciones</div>
+  <div class="sb-item" onclick="goTab('compras')"><span class="sb-ico">🛒</span>Compras</div>
+  <div class="sb-item" onclick="goTab('merma')"><span class="sb-ico">🗑️</span>Merma y Desperdicio</div>
+  <div class="sb-item" onclick="goTab('gastosfijos')"><span class="sb-ico">🏠</span>Gastos Fijos</div>
+  <div class="sb-sec">Análisis</div>
+  <div class="sb-item" onclick="goTab('rentabilidad')"><span class="sb-ico">📈</span>Rentabilidad</div>
+  <div class="sb-item" onclick="goTab('proyeccion')"><span class="sb-ico">🔮</span>Proyección</div>
+</aside>
+
+<!-- MAIN -->
+<div class="main">
+  <div class="topbar">
+    <span class="tb-title" id="tbTitle">Dashboard</span>
+    <div class="tb-right">
+      <span class="tb-tag">PRO · GASTRONOMÍA</span>
+      <span class="tb-date" id="tbDate"></span>
+    </div>
+  </div>
+
+  <div class="content">
+
+    <!-- DASHBOARD -->
+    <div class="tabs active" id="tab-dashboard">
+      <div class="kpi-row" id="kpiRow"></div>
+      <div class="chart-row">
+        <div class="chart-box"><div class="chart-title">Margen por plato</div><div class="bar-chart" id="chartPlatos"></div></div>
+        <div class="chart-box"><div class="chart-title">Ventas por canal</div><div class="bar-chart" id="chartCanal"></div></div>
+      </div>
+      <div class="pe-box" id="peBox"></div>
+    </div>
+
+    <!-- VENTAS / MESAS -->
+    <div class="tabs" id="tab-ventas">
+      <div class="sh">
+        <span class="sh-title">Ventas del día</span>
+        <div class="sh-actions">
+          <div class="horario-row" id="horarioFilter"></div>
+          <button class="btn btn-blue" onclick="openModal('mNuevaMesa')">+ Nueva mesa</button>
+        </div>
+      </div>
+      <div class="mesa-grid" id="mesaGrid"></div>
+      <div class="sh" style="margin-top:1.2rem"><span class="sh-title">Historial de mesas cerradas</span></div>
+      <div class="tw"><table><thead><tr><th>Mesa</th><th>Fecha</th><th>Turno</th><th>Hora</th><th>Comensales</th><th>Platos</th><th>Subtotal</th><th>Descuento</th><th>Total</th></tr></thead><tbody id="tblMesas"></tbody></table></div>
+    </div>
+
+    <!-- MATERIA PRIMA -->
+    <div class="tabs" id="tab-materia">
+      <div class="sh"><span class="sh-title">Maestro de Materia Prima</span><button class="btn btn-blue" onclick="openModal('mMateria')">+ Agregar insumo</button></div>
+      <div class="tw"><table><thead><tr><th>Insumo</th><th>Categoría</th><th>Precio</th><th>Unidad</th><th>Proveedor</th><th>Stock mín.</th><th>Últ. actualiz.</th><th></th></tr></thead><tbody id="tblMateria"></tbody></table></div>
+    </div>
+
+    <!-- PLATOS -->
+    <div class="tabs" id="tab-platos">
+      <div class="sh"><span class="sh-title">Platos y Recetas</span><button class="btn btn-blue" onclick="openModal('mPlato')">+ Nuevo plato</button></div>
+      <div class="tw"><table><thead><tr><th>Plato</th><th>Canal</th><th>Precio</th><th>Costo</th><th>Merma</th><th>Costo real</th><th>Utilidad $</th><th>Margen %</th><th>Estado</th><th></th></tr></thead><tbody id="tblPlatos"></tbody></table></div>
+    </div>
+
+    <!-- COMBOS -->
+    <div class="tabs" id="tab-combos">
+      <div class="sh"><span class="sh-title">Combos y Promociones</span><button class="btn btn-blue" onclick="openModal('mCombo')">+ Nuevo combo</button></div>
+      <div class="tw"><table><thead><tr><th>Combo</th><th>Platos incluidos</th><th>Precio normal</th><th>Precio combo</th><th>Descuento</th><th>Costo</th><th>Utilidad $</th><th>Margen %</th><th></th></tr></thead><tbody id="tblCombos"></tbody></table></div>
+    </div>
+
+    <!-- COMPRAS -->
+    <div class="tabs" id="tab-compras">
+      <div class="sh"><span class="sh-title">Registro de Compras</span><button class="btn btn-blue" onclick="openModal('mCompra')">+ Nueva compra</button></div>
+      <div class="tw"><table><thead><tr><th>Fecha</th><th>Proveedor</th><th>Insumos</th><th>Total</th><th>Estado</th><th></th></tr></thead><tbody id="tblCompras"></tbody></table></div>
+    </div>
+
+    <!-- MERMA -->
+    <div class="tabs" id="tab-merma">
+      <div class="sh">
+        <span class="sh-title">Merma y Desperdicio</span>
+        <div class="sh-actions">
+          <button class="btn btn-ghost" onclick="openModal('mMermaInsumo')">+ Por insumo</button>
+          <button class="btn btn-blue" onclick="openModal('mMermaPlato')">+ Por plato</button>
+        </div>
+      </div>
+      <div class="tw"><table><thead><tr><th>Fecha</th><th>Tipo</th><th>Referencia</th><th>Cantidad</th><th>Costo estimado</th><th>Motivo</th></tr></thead><tbody id="tblMerma"></tbody></table></div>
+    </div>
+
+    <!-- GASTOS FIJOS -->
+    <div class="tabs" id="tab-gastosfijos">
+      <div class="sh">
+        <span class="sh-title">Gastos Fijos</span>
+        <div class="sh-actions">
+          <span style="font-family:'JetBrains Mono',monospace;font-size:.7rem;color:var(--w40);padding:.4rem .7rem;background:var(--card2);border-radius:6px;border:1px solid var(--border)">Total: <strong id="totalGF" style="color:var(--white)">$0</strong></span>
+          <button class="btn btn-blue" onclick="openModal('mGastoFijo')">+ Nuevo gasto</button>
+        </div>
+      </div>
+      <div class="tw" id="twGF">
+        <table><thead><tr><th>Concepto</th><th>Categoría</th><th>Monto</th><th>Vencimiento</th><th>Estado</th><th></th></tr></thead>
+        <tbody id="tblGF"></tbody></table>
+      </div>
+    </div>
+
+    <!-- RENTABILIDAD -->
+    <div class="tabs" id="tab-rentabilidad">
+      <div class="chart-row">
+        <div class="chart-box"><div class="chart-title">Rentabilidad por plato</div><div class="bar-chart" id="chartRentPlatos"></div></div>
+        <div class="chart-box"><div class="chart-title">Rentabilidad por canal</div><div class="bar-chart" id="chartRentCanal"></div></div>
+      </div>
+      <div class="tw"><table><thead><tr><th>Plato / Combo</th><th>Tipo</th><th>Uds. vendidas</th><th>Ingreso</th><th>Costo total</th><th>Utilidad $</th><th>Margen %</th><th>Recomendación</th></tr></thead><tbody id="tblRent"></tbody></table></div>
+    </div>
+
+    <!-- PROYECCION -->
+    <div class="tabs" id="tab-proyeccion">
+      <div class="sh"><span class="sh-title">Proyección de caja — 90 días</span></div>
+      <div class="esc-row" id="escRow"></div>
+      <div class="tw" style="margin-top:1rem"><table><thead><tr><th>Período</th><th>Escenario</th><th>Ventas</th><th>Costos var.</th><th>Gastos fijos</th><th>Resultado</th><th>Caja acum.</th></tr></thead><tbody id="tblProy"></tbody></table></div>
+    </div>
+
+  </div>
+</div>
+</div>
+
+<!-- ═══ MODALS ═══ -->
+
+<!-- MATERIA -->
+<div class="modal-bg" id="mMateria">
+  <div class="modal">
+    <div class="modal-head"><span class="modal-title">Nuevo insumo</span><button class="modal-close" onclick="closeModal('mMateria')">✕</button></div>
+    <div class="modal-body">
+      <div class="field"><label>Nombre</label><input id="mp-n" placeholder="Ej: Harina 000"/></div>
+      <div class="fr">
+        <div class="field"><label>Categoría</label><select id="mp-cat"><option>Carnes y proteínas</option><option>Lácteos</option><option>Harinas y cereales</option><option>Verduras y frutas</option><option>Aceites y condimentos</option><option>Bebidas</option><option>Otros</option></select></div>
+        <div class="field"><label>Unidad</label><select id="mp-u"><option value="kg">kg</option><option value="g">g</option><option value="l">litro</option><option value="ml">ml</option><option value="u">unidad</option><option value="doc">docena</option></select></div>
+      </div>
+      <div class="fr">
+        <div class="field"><label>Precio por unidad ($)</label><input id="mp-p" type="number" placeholder="0"/></div>
+        <div class="field"><label>Stock mínimo</label><input id="mp-stock" type="number" placeholder="0"/></div>
+      </div>
+      <div class="field"><label>Proveedor</label><input id="mp-prov" placeholder="Nombre del proveedor"/></div>
+    </div>
+    <div class="modal-foot"><button class="btn btn-ghost" onclick="closeModal('mMateria')">Cancelar</button><button class="btn btn-blue" onclick="saveMateria()">Guardar</button></div>
+  </div>
+</div>
+
+<!-- EDIT PRECIO -->
+<div class="modal-bg" id="mEditPrecio">
+  <div class="modal" style="width:380px">
+    <div class="modal-head"><span class="modal-title">Actualizar precio</span><button class="modal-close" onclick="closeModal('mEditPrecio')">✕</button></div>
+    <div class="modal-body">
+      <div class="field"><label id="epLabel">Insumo</label><input id="epVal" type="number" placeholder="Nuevo precio"/></div>
+      <p style="font-size:.74rem;color:var(--w40);line-height:1.6">Al guardar, todos los platos y combos que usan este insumo se recalculan automáticamente.</p>
+    </div>
+    <div class="modal-foot"><button class="btn btn-ghost" onclick="closeModal('mEditPrecio')">Cancelar</button><button class="btn btn-blue" onclick="saveEditPrecio()">Actualizar y recalcular</button></div>
+  </div>
+</div>
+
+<!-- PLATO -->
+<div class="modal-bg" id="mPlato">
+  <div class="modal modal-lg">
+    <div class="modal-head"><span class="modal-title">Nuevo plato</span><button class="modal-close" onclick="closeModal('mPlato')">✕</button></div>
+    <div class="modal-body">
+      <div class="fr">
+        <div class="field"><label>Nombre del plato</label><input id="pl-n" placeholder="Ej: Milanesa napolitana"/></div>
+        <div class="field"><label>Canal</label><select id="pl-canal"><option>Salón</option><option>Delivery</option><option>Take away</option><option>Todos</option></select></div>
+      </div>
+      <div class="fr">
+        <div class="field"><label>Precio de venta ($)</label><input id="pl-p" type="number" placeholder="0" oninput="updateCostPrev()"/></div>
+        <div class="field"><label>Merma estimada (%)</label><input id="pl-merma" type="number" placeholder="5" value="5" oninput="updateCostPrev()"/></div>
+      </div>
+      <div class="field"><label>Ingredientes de la receta</label></div>
+      <div class="ing-list" id="ingList"></div>
+      <button class="btn btn-ghost" style="margin-bottom:.8rem;font-size:.72rem" onclick="addIng()">+ Ingrediente</button>
+      <div class="cost-prev">
+        <span class="cp-label">COSTO CALCULADO</span>
+        <span class="cp-val" id="costPrev">$0</span>
+      </div>
+    </div>
+    <div class="modal-foot"><button class="btn btn-ghost" onclick="closeModal('mPlato')">Cancelar</button><button class="btn btn-blue" onclick="savePlato()">Guardar plato</button></div>
+  </div>
+</div>
+
+<!-- COMBO -->
+<div class="modal-bg" id="mCombo">
+  <div class="modal modal-lg">
+    <div class="modal-head"><span class="modal-title">Nuevo combo / promoción</span><button class="modal-close" onclick="closeModal('mCombo')">✕</button></div>
+    <div class="modal-body">
+      <div class="fr">
+        <div class="field"><label>Nombre del combo</label><input id="co-n" placeholder="Ej: Combo Familiar"/></div>
+        <div class="field"><label>Canal</label><select id="co-canal"><option>Salón</option><option>Delivery</option><option>Take away</option><option>Todos</option></select></div>
+      </div>
+      <div class="field"><label>Platos incluidos</label><div id="comboPlatos" style="display:flex;flex-direction:column;gap:.4rem;margin-bottom:.5rem"></div><button class="btn btn-ghost" style="font-size:.7rem" onclick="addComboPlato()">+ Agregar plato</button></div>
+      <div style="padding:.7rem 1rem;background:var(--dark);border:1px solid var(--border);border-radius:7px;margin-bottom:.8rem">
+        <span style="font-family:'JetBrains Mono',monospace;font-size:.58rem;color:var(--w40);letter-spacing:.1em">PRECIO NORMAL (suma de platos): </span>
+        <span style="font-family:'Syne',sans-serif;font-weight:700" id="comboPrecioNormal">$0</span>
+      </div>
+      <div class="field"><label>Tipo de precio especial</label>
+        <select id="co-tipo" onchange="updateComboPreview()">
+          <option value="pct">Descuento porcentaje (%)</option>
+          <option value="monto">Monto fijo ($)</option>
+        </select>
+      </div>
+      <div class="fr">
+        <div class="field"><label id="coValLabel">Descuento (%)</label><input id="co-val" type="number" placeholder="0" oninput="updateComboPreview()"/></div>
+        <div class="field"><label>Precio final combo</label><input id="co-precio-final" type="number" placeholder="0" oninput="updateComboFromFinal()"/></div>
+      </div>
+      <div class="disc-prev" id="comboPreview" style="display:none">
+        <div class="dp-item"><span class="dp-label">PRECIO NORMAL</span><span class="dp-val" id="cpNormal">$0</span></div>
+        <div class="dp-item"><span class="dp-label">PRECIO COMBO</span><span class="dp-val td-g" id="cpFinal">$0</span></div>
+        <div class="dp-item"><span class="dp-label">MARGEN COMBO</span><span class="dp-val" id="cpMargen">0%</span></div>
+      </div>
+    </div>
+    <div class="modal-foot"><button class="btn btn-ghost" onclick="closeModal('mCombo')">Cancelar</button><button class="btn btn-blue" onclick="saveCombo()">Guardar combo</button></div>
+  </div>
+</div>
+
+<!-- NUEVA MESA -->
+<div class="modal-bg" id="mNuevaMesa">
+  <div class="modal modal-lg">
+    <div class="modal-head"><span class="modal-title">Nueva mesa / venta</span><button class="modal-close" onclick="closeModal('mNuevaMesa')">✕</button></div>
+    <div class="modal-body">
+      <div class="fr3">
+        <div class="field"><label>Nro de mesa</label><input id="me-num" type="number" placeholder="1"/></div>
+        <div class="field"><label>Comensales</label><input id="me-com" type="number" placeholder="2"/></div>
+        <div class="field"><label>Turno</label><select id="me-turno"><option>Desayuno</option><option>Almuerzo</option><option selected>Mediodía</option><option>Merienda</option><option>Cena</option><option>Noche</option></select></div>
+      </div>
+      <div class="fr">
+        <div class="field"><label>Fecha</label><input id="me-fecha" type="date"/></div>
+        <div class="field"><label>Hora</label><input id="me-hora" type="time"/></div>
+      </div>
+      <div class="field"><label>Canal</label><select id="me-canal"><option>Salón</option><option>Delivery</option><option>Take away</option></select></div>
+      <div class="field"><label>Pedido (platos y combos)</label>
+        <div id="pedidoList" style="display:flex;flex-direction:column;gap:.4rem;margin-bottom:.5rem"></div>
+        <button class="btn btn-ghost" style="font-size:.7rem" onclick="addPedidoItem()">+ Agregar ítem</button>
+      </div>
+      <div class="field"><label>Descuento sobre total (%)</label><input id="me-desc" type="number" placeholder="0" value="0" oninput="updateMesaPreview()"/></div>
+      <div class="disc-prev" id="mesaPreview">
+        <div class="dp-item"><span class="dp-label">SUBTOTAL</span><span class="dp-val" id="mpSub">$0</span></div>
+        <div class="dp-item"><span class="dp-label">DESCUENTO</span><span class="dp-val td-r" id="mpDesc">$0</span></div>
+        <div class="dp-item"><span class="dp-label">TOTAL</span><span class="dp-val td-g" id="mpTotal">$0</span></div>
+      </div>
+    </div>
+    <div class="modal-foot"><button class="btn btn-ghost" onclick="closeModal('mNuevaMesa')">Cancelar</button><button class="btn btn-green" onclick="saveMesa()">Cerrar mesa</button></div>
+  </div>
+</div>
+
+<!-- COMPRA -->
+<div class="modal-bg" id="mCompra">
+  <div class="modal modal-lg">
+    <div class="modal-head"><span class="modal-title">Nueva compra</span><button class="modal-close" onclick="closeModal('mCompra')">✕</button></div>
+    <div class="modal-body">
+      <div class="fr">
+        <div class="field"><label>Proveedor</label><input id="cp-prov" placeholder="Nombre del proveedor"/></div>
+        <div class="field"><label>Fecha</label><input id="cp-fecha" type="date"/></div>
+      </div>
+      <div class="field"><label>Insumos comprados</label>
+        <div id="compraInsumos" style="display:flex;flex-direction:column;gap:.4rem;margin-bottom:.5rem"></div>
+        <button class="btn btn-ghost" style="font-size:.7rem" onclick="addCompraInsumo()">+ Agregar insumo</button>
+      </div>
+      <div class="field"><label>Total factura ($)</label><input id="cp-total" type="number" placeholder="0"/></div>
+      <div class="field"><label>Estado</label><select id="cp-estado"><option>Pagado</option><option>Pendiente</option><option>Parcial</option></select></div>
+    </div>
+    <div class="modal-foot"><button class="btn btn-ghost" onclick="closeModal('mCompra')">Cancelar</button><button class="btn btn-blue" onclick="saveCompra()">Registrar compra</button></div>
+  </div>
+</div>
+
+<!-- MERMA INSUMO -->
+<div class="modal-bg" id="mMermaInsumo">
+  <div class="modal">
+    <div class="modal-head"><span class="modal-title">Merma por insumo</span><button class="modal-close" onclick="closeModal('mMermaInsumo')">✕</button></div>
+    <div class="modal-body">
+      <div class="field"><label>Insumo</label><select id="mi-ins"></select></div>
+      <div class="fr">
+        <div class="field"><label>Cantidad perdida</label><input id="mi-cant" type="number" placeholder="0" step="0.01"/></div>
+        <div class="field"><label>Fecha</label><input id="mi-fecha" type="date"/></div>
+      </div>
+      <div class="field"><label>Motivo</label><select id="mi-motivo"><option>Vencimiento</option><option>Mal almacenamiento</option><option>Rotura</option><option>Sobrestock</option><option>Otro</option></select></div>
+    </div>
+    <div class="modal-foot"><button class="btn btn-ghost" onclick="closeModal('mMermaInsumo')">Cancelar</button><button class="btn btn-blue" onclick="saveMermaInsumo()">Registrar</button></div>
+  </div>
+</div>
+
+<!-- MERMA PLATO -->
+<div class="modal-bg" id="mMermaPlato">
+  <div class="modal">
+    <div class="modal-head"><span class="modal-title">Merma por plato</span><button class="modal-close" onclick="closeModal('mMermaPlato')">✕</button></div>
+    <div class="modal-body">
+      <div class="field"><label>Plato</label><select id="mp2-plato"></select></div>
+      <div class="fr">
+        <div class="field"><label>Unidades perdidas</label><input id="mp2-cant" type="number" placeholder="0"/></div>
+        <div class="field"><label>Fecha</label><input id="mp2-fecha" type="date"/></div>
+      </div>
+      <div class="field"><label>Motivo</label><select id="mp2-motivo"><option>Plato devuelto</option><option>Error de cocina</option><option>Cancelación</option><option>Vencimiento</option><option>Otro</option></select></div>
+    </div>
+    <div class="modal-foot"><button class="btn btn-ghost" onclick="closeModal('mMermaPlato')">Cancelar</button><button class="btn btn-blue" onclick="saveMermaPlato()">Registrar</button></div>
+  </div>
+</div>
+
+<!-- GASTO FIJO -->
+<div class="modal-bg" id="mGastoFijo">
+  <div class="modal">
+    <div class="modal-head"><span class="modal-title">Nuevo gasto fijo</span><button class="modal-close" onclick="closeModal('mGastoFijo')">✕</button></div>
+    <div class="modal-body">
+      <div class="field"><label>Concepto</label><input id="gf-n" placeholder="Ej: Alquiler local"/></div>
+      <div class="fr">
+        <div class="field"><label>Categoría</label><select id="gf-cat"><option>Alquiler</option><option>Personal</option><option>Servicios</option><option>Impuestos</option><option>Marketing</option><option>Mantenimiento</option><option>Seguros</option><option>Otros</option></select></div>
+        <div class="field"><label>Monto mensual ($)</label><input id="gf-monto" type="number" placeholder="0"/></div>
+      </div>
+      <div class="fr">
+        <div class="field"><label>Fecha vencimiento</label><input id="gf-venc" type="date"/></div>
+        <div class="field"><label>Estado</label><select id="gf-estado"><option>Pagado</option><option>Pendiente</option><option>Vencido</option></select></div>
+      </div>
+    </div>
+    <div class="modal-foot"><button class="btn btn-ghost" onclick="closeModal('mGastoFijo')">Cancelar</button><button class="btn btn-blue" onclick="saveGastoFijo()">Guardar</button></div>
+  </div>
+</div>
+
+<script>
+// ══ STATE ══
+let S = { materia:[], platos:[], combos:[], mesas:[], compras:[], merma:[], gastosFijos:[], horarioActivo:'todos', editMpIdx:null };
+let nextId = 100;
+const uid = () => nextId++;
+
+const fmt = n => '$' + Math.round(n||0).toLocaleString('es-AR');
+const pct = n => (n||0).toFixed(1) + '%';
+
+// ══ COST CALC ══
+function calcCostoPlato(pl) {
+  let base = pl.ingredientes.reduce((s,ing) => {
+    const mp = S.materia.find(m=>m.id===ing.id);
+    return s + (mp ? mp.precio * ing.cant : 0);
+  }, 0);
+  return base * (1 + (pl.merma||0)/100);
+}
+function calcMargenPlato(pl) {
+  const c = calcCostoPlato(pl);
+  return pl.precio > 0 ? (pl.precio - c) / pl.precio * 100 : 0;
+}
+function calcCostoCombo(co) {
+  return co.platos.reduce((s,cp) => {
+    const pl = S.platos.find(p=>p.id===cp.id);
+    return s + (pl ? calcCostoPlato(pl) * (cp.cant||1) : 0);
+  }, 0);
+}
+function calcPrecioNormalCombo(co) {
+  return co.platos.reduce((s,cp) => {
+    const pl = S.platos.find(p=>p.id===cp.id);
+    return s + (pl ? pl.precio * (cp.cant||1) : 0);
+  }, 0);
+}
+
+// ══ TABS ══
+const tabTitles = { dashboard:'Dashboard', ventas:'Ventas / Mesas', materia:'Materia Prima', platos:'Platos y Recetas', combos:'Combos y Promos', compras:'Compras', merma:'Merma y Desperdicio', gastosfijos:'Gastos Fijos', rentabilidad:'Rentabilidad', proyeccion:'Proyección' };
+function goTab(name) {
+  document.querySelectorAll('.tabs').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.sb-item').forEach(i=>i.classList.remove('active'));
+  document.getElementById('tab-'+name).classList.add('active');
+  document.querySelectorAll('.sb-item').forEach(i=>{ if(i.getAttribute('onclick')?.includes("'"+name+"'")) i.classList.add('active'); });
+  document.getElementById('tbTitle').textContent = tabTitles[name];
+  renderTab(name);
+}
+function renderTab(n) {
+  const fn = { dashboard:renderDash, ventas:renderVentas, materia:renderMateria, platos:renderPlatos, combos:renderCombos, compras:renderCompras, merma:renderMerma, gastosfijos:renderGF, rentabilidad:renderRent, proyeccion:renderProy };
+  if (fn[n]) fn[n]();
+}
+
+// ══ DASHBOARD ══
+function renderDash() {
+  const totalVentas = S.mesas.reduce((s,m)=>s+m.total,0);
+  const totalCom = S.mesas.reduce((s,m)=>s+m.comensales,0);
+  const ticket = totalCom ? totalVentas/totalCom : 0;
+  const margenes = S.platos.map(calcMargenPlato);
+  const avgM = margenes.length ? margenes.reduce((a,b)=>a+b,0)/margenes.length : 0;
+  const enRojo = S.platos.filter(p=>calcMargenPlato(p)<20).length;
+  const totalGF = S.gastosFijos.reduce((s,g)=>s+g.monto,0);
+
+  document.getElementById('kpiRow').innerHTML = `
+    <div class="kpi blue"><span class="kpi-label">Ventas del período</span><div class="kpi-val">${fmt(totalVentas)}</div><div class="kpi-sub">${S.mesas.length} mesas cerradas</div></div>
+    <div class="kpi green"><span class="kpi-label">Margen promedio</span><div class="kpi-val">${pct(avgM)}</div><div class="kpi-sub">sobre precio de venta</div></div>
+    <div class="kpi gold"><span class="kpi-label">Ticket promedio</span><div class="kpi-val">${fmt(ticket)}</div><div class="kpi-sub">por comensal</div></div>
+    <div class="kpi red"><span class="kpi-label">Platos en rojo</span><div class="kpi-val">${enRojo}</div><div class="kpi-sub">margen &lt;20%</div></div>`;
+
+  const sortedP = [...S.platos].sort((a,b)=>calcMargenPlato(b)-calcMargenPlato(a));
+  document.getElementById('chartPlatos').innerHTML = sortedP.length ? sortedP.map(p=>{
+    const m = calcMargenPlato(p);
+    const c = m>=50?'#10B981':m>=30?'#D4943A':'#EF4444';
+    return `<div class="bar-item"><span class="bar-label">${p.nombre}</span><div class="bar-track"><div class="bar-fill" style="width:${Math.max(m,0)}%;background:${c}"></div></div><span class="bar-val">${m.toFixed(0)}%</span></div>`;
+  }).join('') : '<div class="empty"><span class="empty-ico">📊</span><span class="empty-text">Sin platos</span></div>';
+
+  const canales = {};
+  S.mesas.forEach(m=>{ canales[m.canal]=(canales[m.canal]||0)+m.total; });
+  const maxC = Math.max(...Object.values(canales),1);
+  document.getElementById('chartCanal').innerHTML = Object.entries(canales).map(([n,v])=>
+    `<div class="bar-item"><span class="bar-label">${n}</span><div class="bar-track"><div class="bar-fill" style="width:${v/maxC*100}%;background:var(--blue)"></div></div><span class="bar-val">${fmt(v)}</span></div>`
+  ).join('') || '<div class="empty"><span class="empty-ico">📊</span><span class="empty-text">Sin ventas</span></div>';
+
+  const pe = avgM > 0 ? totalGF / (avgM/100) : 0;
+  const diff = totalVentas - pe;
+  document.getElementById('peBox').innerHTML = `
+    <div class="pe-item"><span class="pe-label">Gastos fijos / mes</span><div class="pe-val" style="color:#93C5FD">${fmt(totalGF)}</div></div>
+    <div class="pe-item"><span class="pe-label">Punto de equilibrio</span><div class="pe-val" style="color:var(--gold-l)">${fmt(pe)}</div></div>
+    <div class="pe-item"><span class="pe-label">Ventas actuales</span><div class="pe-val" style="color:var(--white)">${fmt(totalVentas)}</div></div>
+    <div class="pe-item"><span class="pe-label">Estado del mes</span><div class="pe-val" style="color:${diff>=0?'var(--green)':'var(--red)'}">${diff>=0?'+':''}${fmt(diff)}</div></div>`;
+}
+
+// ══ VENTAS / MESAS ══
+function renderVentas() {
+  const turnos = ['todos','Desayuno','Almuerzo','Mediodía','Merienda','Cena','Noche'];
+  document.getElementById('horarioFilter').innerHTML = turnos.map(t=>
+    `<div class="horario-chip${S.horarioActivo===t?' on':''}" onclick="setHorario('${t}')">${t==='todos'?'Todos los turnos':t}</div>`
+  ).join('');
+
+  const mesasAbiertas = [];
+  for(let i=1;i<=8;i++) {
+    const v = S.mesas.filter(m=>m.mesa===i && m.estado==='abierta')[0];
+    mesasAbiertas.push({num:i, venta:v});
+  }
+  document.getElementById('mesaGrid').innerHTML = mesasAbiertas.map(({num,venta})=>
+    `<div class="mesa-card ${venta?'ocupada':''}" onclick="${venta?'':'openModal(\'mNuevaMesa\')'}">
+      <div class="mesa-num">Mesa ${num}</div>
+      <div class="mesa-info">${venta?`${venta.comensales} comensales · ${venta.turno}`:'Libre'}</div>
+      ${venta?`<div class="mesa-total">${fmt(venta.subtotal)}</div>`:''}
+    </div>`
+  ).join('');
+
+  const filtradas = S.horarioActivo==='todos' ? S.mesas.filter(m=>m.estado==='cerrada') : S.mesas.filter(m=>m.estado==='cerrada'&&m.turno===S.horarioActivo);
+  document.getElementById('tblMesas').innerHTML = filtradas.length ? filtradas.map(m=>`
+    <tr>
+      <td><strong>Mesa ${m.mesa}</strong></td>
+      <td class="td-n">${m.fecha}</td>
+      <td><span class="badge bb">${m.turno}</span></td>
+      <td class="td-n">${m.hora}</td>
+      <td class="td-n">${m.comensales}</td>
+      <td style="font-size:.74rem;color:var(--w70)">${m.items.map(i=>i.nombre+(i.cant>1?` x${i.cant}`:'')).join(', ')}</td>
+      <td class="td-n">${fmt(m.subtotal)}</td>
+      <td class="td-n td-r">${m.descuento>0?'-'+m.descuento+'%':'—'}</td>
+      <td class="td-n td-g"><strong>${fmt(m.total)}</strong></td>
+    </tr>`).join('') :
+    '<tr><td colspan="9"><div class="empty"><span class="empty-ico">🪑</span><span class="empty-text">No hay mesas cerradas.</span></div></td></tr>';
+}
+function setHorario(t) { S.horarioActivo=t; renderVentas(); }
+
+// ══ MATERIA ══
+function renderMateria() {
+  document.getElementById('tblMateria').innerHTML = S.materia.length ? S.materia.map((m,i)=>`
+    <tr>
+      <td><strong>${m.nombre}</strong></td>
+      <td><span class="badge bb">${m.cat}</span></td>
+      <td class="td-n td-go">${fmt(m.precio)}</td>
+      <td class="td-n">por ${m.unidad}</td>
+      <td style="color:var(--w70)">${m.proveedor||'—'}</td>
+      <td class="td-n">${m.stockMin||0} ${m.unidad}</td>
+      <td class="td-n" style="color:var(--w40)">${m.fecha||'—'}</td>
+      <td><button class="btn btn-ghost btn-xs" onclick="openEditPrecio(${i})">✏️ Precio</button></td>
+    </tr>`).join('') :
+    '<tr><td colspan="8"><div class="empty"><span class="empty-ico">🧂</span><span class="empty-text">Agregá insumos para calcular costos de platos.</span></div></td></tr>';
+}
+
+// ══ PLATOS ══
+function renderPlatos() {
+  document.getElementById('tblPlatos').innerHTML = S.platos.length ? S.platos.map((p,i)=>{
+    const costoBase = calcCostoPlato(p)/(1+p.merma/100);
+    const costoR = calcCostoPlato(p);
+    const m = calcMargenPlato(p);
+    const util = p.precio - costoR;
+    const badge = m>=50?'bg':m>=30?'bo':'br';
+    const badgeT = m>=50?'Bueno':m>=30?'Aceptable':'Bajo';
+    return `<tr>
+      <td><strong>${p.nombre}</strong></td>
+      <td><span class="badge bb">${p.canal}</span></td>
+      <td class="td-n">${fmt(p.precio)}</td>
+      <td class="td-n">${fmt(costoBase)}</td>
+      <td class="td-n" style="color:var(--w40)">${p.merma}%</td>
+      <td class="td-n td-go">${fmt(costoR)}</td>
+      <td class="td-n td-g"><strong>${fmt(util)}</strong></td>
+      <td class="td-n ${m>=50?'td-g':m>=30?'td-go':'td-r'}">${m.toFixed(1)}%</td>
+      <td><span class="badge ${badge}">${badgeT}</span></td>
+      <td><button class="btn btn-red btn-xs" onclick="delPlato(${i})">✕</button></td>
+    </tr>`;
+  }).join('') :
+  '<tr><td colspan="10"><div class="empty"><span class="empty-ico">🍽️</span><span class="empty-text">Cargá platos con sus recetas para ver costos y utilidades.</span></div></td></tr>';
+}
+
+// ══ COMBOS ══
+function renderCombos() {
+  document.getElementById('tblCombos').innerHTML = S.combos.length ? S.combos.map((co,i)=>{
+    const precioN = calcPrecioNormalCombo(co);
+    const costo = calcCostoCombo(co);
+    const util = co.precioFinal - costo;
+    const m = precioN>0 ? (co.precioFinal-costo)/co.precioFinal*100 : 0;
+    const desc = precioN>0 ? (1-co.precioFinal/precioN)*100 : 0;
+    const plNames = co.platos.map(cp=>{ const pl=S.platos.find(p=>p.id===cp.id); return pl?(pl.nombre+(cp.cant>1?` x${cp.cant}`:'')):'-'; }).join(', ');
+    return `<tr>
+      <td><strong>${co.nombre}</strong><br><span style="font-size:.68rem;color:var(--w40)">${co.canal}</span></td>
+      <td style="font-size:.74rem;color:var(--w70)">${plNames}</td>
+      <td class="td-n" style="text-decoration:line-through;color:var(--w40)">${fmt(precioN)}</td>
+      <td class="td-n td-g"><strong>${fmt(co.precioFinal)}</strong></td>
+      <td class="td-n td-r">-${desc.toFixed(0)}%</td>
+      <td class="td-n td-go">${fmt(costo)}</td>
+      <td class="td-n td-g"><strong>${fmt(util)}</strong></td>
+      <td class="td-n ${m>=40?'td-g':m>=20?'td-go':'td-r'}">${m.toFixed(1)}%</td>
+      <td><button class="btn btn-red btn-xs" onclick="delCombo(${i})">✕</button></td>
+    </tr>`;
+  }).join('') :
+  '<tr><td colspan="9"><div class="empty"><span class="empty-ico">🎁</span><span class="empty-text">Armá combos para ver su rentabilidad real.</span></div></td></tr>';
+}
+
+// ══ COMPRAS ══
+function renderCompras() {
+  document.getElementById('tblCompras').innerHTML = S.compras.length ? S.compras.map((c,i)=>`
+    <tr>
+      <td class="td-n">${c.fecha}</td>
+      <td><strong>${c.proveedor}</strong></td>
+      <td style="font-size:.74rem;color:var(--w70)">${c.insumos.map(ins=>{ const mp=S.materia.find(m=>m.id===ins.id); return mp?`${mp.nombre} (${ins.cant} ${mp.unidad})`:'-'; }).join(', ')}</td>
+      <td class="td-n td-go"><strong>${fmt(c.total)}</strong></td>
+      <td><span class="badge ${c.estado==='Pagado'?'bg':c.estado==='Pendiente'?'bo':'br'}">${c.estado}</span></td>
+      <td><button class="btn btn-red btn-xs" onclick="delCompra(${i})">✕</button></td>
+    </tr>`).join('') :
+  '<tr><td colspan="6"><div class="empty"><span class="empty-ico">🛒</span><span class="empty-text">Registrá las compras a proveedores.</span></div></td></tr>';
+}
+
+// ══ MERMA ══
+function renderMerma() {
+  document.getElementById('tblMerma').innerHTML = S.merma.length ? S.merma.map(m=>`
+    <tr>
+      <td class="td-n">${m.fecha}</td>
+      <td><span class="badge ${m.tipo==='insumo'?'bb':'bp'}">${m.tipo==='insumo'?'Insumo':'Plato'}</span></td>
+      <td><strong>${m.nombre}</strong></td>
+      <td class="td-n">${m.cant} ${m.unidad}</td>
+      <td class="td-n td-r">${fmt(m.costo)}</td>
+      <td style="color:var(--w70)">${m.motivo}</td>
+    </tr>`).join('') :
+  '<tr><td colspan="6"><div class="empty"><span class="empty-ico">🗑️</span><span class="empty-text">Registrá merma por insumo o por plato.</span></div></td></tr>';
+}
+
+// ══ GASTOS FIJOS ══
+function renderGF() {
+  const total = S.gastosFijos.reduce((s,g)=>s+g.monto,0);
+  document.getElementById('totalGF').textContent = fmt(total);
+  document.getElementById('tblGF').innerHTML = S.gastosFijos.length ? S.gastosFijos.map((g,i)=>`
+    <tr>
+      <td><strong>${g.nombre}</strong></td>
+      <td><span class="badge bb">${g.cat}</span></td>
+      <td class="td-n td-go"><strong>${fmt(g.monto)}</strong></td>
+      <td class="td-n">${g.venc||'—'}</td>
+      <td><span class="badge ${g.estado==='Pagado'?'bg':g.estado==='Pendiente'?'bo':'br'}">${g.estado}</span></td>
+      <td><button class="btn btn-red btn-xs" onclick="delGF(${i})">✕</button></td>
+    </tr>`).join('') :
+  '<tr><td colspan="6"><div class="empty"><span class="empty-ico">🏠</span><span class="empty-text">Cargá los gastos fijos para calcular el punto de equilibrio.</span></div></td></tr>';
+}
+
+// ══ RENTABILIDAD ══
+function renderRent() {
+  const items = [
+    ...S.platos.map(p=>({ nombre:p.nombre, tipo:'Plato', uds:p.ventasMes||0, precio:p.precio, costo:calcCostoPlato(p), margen:calcMargenPlato(p) })),
+    ...S.combos.map(co=>({ nombre:co.nombre, tipo:'Combo', uds:co.ventasMes||0, precio:co.precioFinal, costo:calcCostoCombo(co), margen:co.precioFinal>0?(co.precioFinal-calcCostoCombo(co))/co.precioFinal*100:0 }))
+  ].sort((a,b)=>b.margen-a.margen);
+
+  const maxM = Math.max(...items.map(i=>i.margen),1);
+  document.getElementById('chartRentPlatos').innerHTML = items.map(i=>{
+    const c = i.margen>=50?'#10B981':i.margen>=30?'#D4943A':'#EF4444';
+    return `<div class="bar-item"><span class="bar-label">${i.nombre}</span><div class="bar-track"><div class="bar-fill" style="width:${Math.max(i.margen,0)/maxM*100}%;background:${c}"></div></div><span class="bar-val">${i.margen.toFixed(0)}%</span></div>`;
+  }).join('') || '<div class="empty"><span class="empty-ico">📈</span><span class="empty-text">Sin datos</span></div>';
+
+  const canales = {};
+  S.mesas.forEach(m=>{ canales[m.canal]=(canales[m.canal]||0)+m.total; });
+  const maxC = Math.max(...Object.values(canales),1);
+  document.getElementById('chartRentCanal').innerHTML = Object.entries(canales).map(([n,v])=>
+    `<div class="bar-item"><span class="bar-label">${n}</span><div class="bar-track"><div class="bar-fill" style="width:${v/maxC*100}%;background:var(--blue)"></div></div><span class="bar-val">${fmt(v)}</span></div>`
+  ).join('') || '<div class="empty"><span class="empty-ico">📊</span><span class="empty-text">Sin ventas</span></div>';
+
+  document.getElementById('tblRent').innerHTML = items.length ? items.map(i=>{
+    const ing = i.precio*i.uds;
+    const ct = i.costo*i.uds;
+    const util = ing-ct;
+    const rec = i.margen>=50?'✅ Empujá este ítem':i.margen>=30?'⚠️ Margen aceptable':'❌ Revisá precio o receta';
+    return `<tr>
+      <td><strong>${i.nombre}</strong></td>
+      <td><span class="badge ${i.tipo==='Combo'?'bp':'bb'}">${i.tipo}</span></td>
+      <td class="td-n">${i.uds} uds.</td>
+      <td class="td-n">${fmt(ing)}</td>
+      <td class="td-n td-r">${fmt(ct)}</td>
+      <td class="td-n td-g"><strong>${fmt(util)}</strong></td>
+      <td class="td-n ${i.margen>=50?'td-g':i.margen>=30?'td-go':'td-r'}">${i.margen.toFixed(1)}%</td>
+      <td style="font-size:.74rem">${rec}</td>
+    </tr>`;
+  }).join('') :
+  '<tr><td colspan="8"><div class="empty"><span class="empty-ico">📈</span><span class="empty-text">Cargá platos y combos para ver rentabilidad.</span></div></td></tr>';
+}
+
+// ══ PROYECCIÓN ══
+function renderProy() {
+  const totalV = S.mesas.reduce((s,m)=>s+m.total,0) * (S.mesas.length>0?4:1);
+  const margenes = S.platos.map(calcMargenPlato);
+  const avgM = margenes.length ? margenes.reduce((a,b)=>a+b,0)/margenes.length : 40;
+  const totalGF = S.gastosFijos.reduce((s,g)=>s+g.monto,0);
+  const esc = [{name:'Pesimista',mult:.75,cls:'td-r'},{name:'Base',mult:1,cls:'td-go'},{name:'Optimista',mult:1.25,cls:'td-g'}];
+
+  document.getElementById('escRow').innerHTML = esc.map((e,i)=>{
+    const v=Math.round(totalV*e.mult), cv=Math.round(v*(1-avgM/100)), r=v-cv-totalGF;
+    return `<div class="esc${i===1?' act':''}">
+      <div class="esc-name">${e.name}</div>
+      <div class="esc-val ${e.cls}">${fmt(v)}</div>
+      <div class="esc-sub">Resultado: <span class="${r>=0?'up':'dn'}">${fmt(r)}</span></div>
+    </div>`;
+  }).join('');
+
+  const periodos=['Mes 1 (actual)','Mes 2','Mes 3'];
+  const crecimiento=[1,1.08,1.15];
+  let rows='', acum=0;
+  periodos.forEach((p,pi)=>{
+    esc.forEach((e,ei)=>{
+      const v=Math.round(totalV*e.mult*crecimiento[pi]);
+      const cv=Math.round(v*(1-avgM/100));
+      const r=v-cv-totalGF;
+      if(ei===1) acum+=r;
+      rows+=`<tr>
+        ${ei===0?`<td rowspan="3"><strong>${p}</strong></td>`:''}
+        <td><span class="badge ${ei===0?'br':ei===1?'bo':'bg'}">${e.name}</span></td>
+        <td class="td-n">${fmt(v)}</td>
+        <td class="td-n td-r">${fmt(cv)}</td>
+        <td class="td-n td-r">${fmt(totalGF)}</td>
+        <td class="td-n ${r>=0?'td-g':'td-r'}">${fmt(r)}</td>
+        ${ei===0?`<td class="td-n" rowspan="3" style="color:${acum>=0?'var(--green)':'var(--red)'}">${fmt(acum)}</td>`:''}
+      </tr>`;
+    });
+  });
+  document.getElementById('tblProy').innerHTML = rows;
+}
+
+// ══ SAVE MATERIA ══
+function saveMateria() {
+  const n=document.getElementById('mp-n').value.trim();
+  const p=parseFloat(document.getElementById('mp-p').value);
+  if(!n||!p) return alert('Completá nombre y precio');
+  S.materia.push({id:uid(),nombre:n,cat:document.getElementById('mp-cat').value,precio:p,unidad:document.getElementById('mp-u').value,proveedor:document.getElementById('mp-prov').value||'—',stockMin:parseFloat(document.getElementById('mp-stock').value)||0,fecha:'hoy'});
+  ['mp-n','mp-p','mp-prov','mp-stock'].forEach(id=>document.getElementById(id).value='');
+  closeModal('mMateria'); renderMateria(); toast('✅ Insumo guardado');
+  populateMermaSelects();
+}
+
+function openEditPrecio(i) {
+  S.editMpIdx=i; const m=S.materia[i];
+  document.getElementById('epLabel').textContent=`${m.nombre} — precio actual: ${fmt(m.precio)} / ${m.unidad}`;
+  document.getElementById('epVal').value=m.precio;
+  openModal('mEditPrecio');
+}
+function saveEditPrecio() {
+  const v=parseFloat(document.getElementById('epVal').value);
+  if(!v||v<=0) return;
+  S.materia[S.editMpIdx].precio=v; S.materia[S.editMpIdx].fecha='hoy';
+  closeModal('mEditPrecio'); renderMateria(); renderPlatos(); renderCombos();
+  toast('✅ Precio actualizado — platos y combos recalculados');
+}
+
+// ══ INGREDIENTS ══
+function addIng(listId='ingList', onInput='updateCostPrev') {
+  const list=document.getElementById(listId);
+  const opts=S.materia.map(m=>`<option value="${m.id}">${m.nombre} (${m.unidad})</option>`).join('');
+  if(!opts) { toast('⚠️ Primero cargá insumos en Materia Prima'); return; }
+  const row=document.createElement('div'); row.className='ing-row';
+  row.innerHTML=`<select class="ing-sel" onchange="${onInput}()"><option value="">— Insumo —</option>${opts}</select><input type="number" class="ing-cant" placeholder="Cant." step="0.001" oninput="${onInput}()"/><input type="text" class="ing-unit" placeholder="und" readonly style="color:var(--w40)"/><button class="ing-del" onclick="this.parentElement.remove();${onInput}()">✕</button>`;
+  row.querySelector('.ing-sel').addEventListener('change',function(){ const mp=S.materia.find(m=>m.id==this.value); row.querySelector('.ing-unit').value=mp?mp.unidad:''; });
+  list.appendChild(row);
+}
+
+function updateCostPrev() {
+  let cost=0;
+  document.querySelectorAll('#ingList .ing-row').forEach(row=>{
+    const sel=row.querySelector('.ing-sel'), cant=parseFloat(row.querySelector('.ing-cant').value)||0;
+    const mp=S.materia.find(m=>m.id==sel.value);
+    if(mp&&cant) cost+=mp.precio*cant;
+  });
+  const merma=parseFloat(document.getElementById('pl-merma').value)||0;
+  const costoF=cost*(1+merma/100);
+  const precio=parseFloat(document.getElementById('pl-p').value)||0;
+  const m=precio>0?((precio-costoF)/precio*100).toFixed(1):0;
+  const util=precio>0?precio-costoF:0;
+  const el=document.getElementById('costPrev');
+  el.textContent=`Costo: ${fmt(costoF)}  ·  Utilidad: ${fmt(util)}  ·  Margen: ${m}%`;
+  el.style.color=m>=50?'var(--green)':m>=30?'var(--gold-l)':'var(--red)';
+}
+
+function savePlato() {
+  const n=document.getElementById('pl-n').value.trim(), p=parseFloat(document.getElementById('pl-p').value);
+  if(!n||!p) return alert('Completá nombre y precio');
+  const ings=[];
+  document.querySelectorAll('#ingList .ing-row').forEach(row=>{
+    const id=parseInt(row.querySelector('.ing-sel').value), cant=parseFloat(row.querySelector('.ing-cant').value);
+    if(id&&cant) ings.push({id,cant});
+  });
+  S.platos.push({id:uid(),nombre:n,canal:document.getElementById('pl-canal').value,precio:p,merma:parseFloat(document.getElementById('pl-merma').value)||5,ingredientes:ings,ventasMes:0});
+  ['pl-n','pl-p'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('ingList').innerHTML='';
+  closeModal('mPlato'); renderPlatos(); populateMermaSelects(); toast('✅ Plato guardado');
+}
+function delPlato(i) { S.platos.splice(i,1); renderPlatos(); }
+
+// ══ COMBOS ══
+function addComboPlato() {
+  const opts=S.platos.map(p=>`<option value="${p.id}">${p.nombre}</option>`).join('');
+  if(!opts) { toast('⚠️ Primero cargá platos'); return; }
+  const div=document.createElement('div'); div.style.cssText='display:grid;grid-template-columns:1fr 70px 26px;gap:.4rem;align-items:center;';
+  div.innerHTML=`<select class="co-plato" style="padding:.42rem .6rem;background:var(--dark);border:1px solid var(--border);border-radius:7px;color:var(--white);font-size:.78rem;" onchange="updateComboNormal()"><option value="">— Plato —</option>${opts}</select><input type="number" min="1" value="1" class="co-plato-cant" placeholder="Cant" style="padding:.42rem .6rem;background:var(--dark);border:1px solid var(--border);border-radius:7px;color:var(--white);font-size:.78rem;" oninput="updateComboNormal()"/><button class="ing-del" onclick="this.parentElement.remove();updateComboNormal()">✕</button>`;
+  document.getElementById('comboPlatos').appendChild(div);
+}
+
+function updateComboNormal() {
+  let total=0;
+  document.querySelectorAll('#comboPlatos .co-plato').forEach((sel,i)=>{
+    const pl=S.platos.find(p=>p.id==sel.value);
+    const cant=parseFloat(document.querySelectorAll('#comboPlatos .co-plato-cant')[i].value)||1;
+    if(pl) total+=pl.precio*cant;
+  });
+  document.getElementById('comboPrecioNormal').textContent=fmt(total);
+  updateComboPreview();
+}
+
+function updateComboPreview() {
+  const tipo=document.getElementById('co-tipo').value;
+  document.getElementById('coValLabel').textContent=tipo==='pct'?'Descuento (%)':'Monto fijo ($)';
+  const normal=parseFloat(document.getElementById('comboPrecioNormal').textContent.replace(/\D/g,''))||0;
+  const val=parseFloat(document.getElementById('co-val').value)||0;
+  let final = tipo==='pct' ? normal*(1-val/100) : val;
+  document.getElementById('co-precio-final').value=Math.round(final);
+  const costo=getComboCurrentCost();
+  const m=final>0?(final-costo)/final*100:0;
+  document.getElementById('comboPrecioNormal').textContent=fmt(normal);
+  document.getElementById('cpNormal').textContent=fmt(normal);
+  document.getElementById('cpFinal').textContent=fmt(final);
+  document.getElementById('cpMargen').textContent=pct(m);
+  document.getElementById('cpMargen').style.color=m>=40?'var(--green)':m>=20?'var(--gold-l)':'var(--red)';
+  document.getElementById('comboPreview').style.display='grid';
+}
+
+function updateComboFromFinal() {
+  const final=parseFloat(document.getElementById('co-precio-final').value)||0;
+  const normal=parseFloat(document.getElementById('comboPrecioNormal').textContent.replace(/\D/g,''))||1;
+  const pctVal=normal>0?(1-final/normal)*100:0;
+  document.getElementById('co-val').value=pctVal.toFixed(1);
+  const costo=getComboCurrentCost();
+  const m=final>0?(final-costo)/final*100:0;
+  document.getElementById('cpNormal').textContent=fmt(normal);
+  document.getElementById('cpFinal').textContent=fmt(final);
+  document.getElementById('cpMargen').textContent=pct(m);
+  document.getElementById('comboPreview').style.display='grid';
+}
+
+function getComboCurrentCost() {
+  let cost=0;
+  document.querySelectorAll('#comboPlatos .co-plato').forEach((sel,i)=>{
+    const pl=S.platos.find(p=>p.id==sel.value);
+    const cant=parseFloat(document.querySelectorAll('#comboPlatos .co-plato-cant')[i].value)||1;
+    if(pl) cost+=calcCostoPlato(pl)*cant;
+  });
+  return cost;
+}
+
+function saveCombo() {
+  const n=document.getElementById('co-n').value.trim();
+  const finalPrice=parseFloat(document.getElementById('co-precio-final').value);
+  if(!n||!finalPrice) return alert('Completá nombre y precio');
+  const platos=[];
+  document.querySelectorAll('#comboPlatos .co-plato').forEach((sel,i)=>{
+    const id=parseInt(sel.value), cant=parseFloat(document.querySelectorAll('#comboPlatos .co-plato-cant')[i].value)||1;
+    if(id) platos.push({id,cant});
+  });
+  S.combos.push({id:uid(),nombre:n,canal:document.getElementById('co-canal').value,platos,precioFinal:finalPrice,ventasMes:0});
+  document.getElementById('co-n').value='';
+  document.getElementById('co-val').value='';
+  document.getElementById('co-precio-final').value='';
+  document.getElementById('comboPlatos').innerHTML='';
+  document.getElementById('comboPreview').style.display='none';
+  closeModal('mCombo'); renderCombos(); toast('✅ Combo guardado');
+}
+function delCombo(i) { S.combos.splice(i,1); renderCombos(); }
+
+// ══ MESA ══
+function addPedidoItem() {
+  const allItems=[
+    ...S.platos.map(p=>`<option value="pl_${p.id}">${p.nombre} — ${fmt(p.precio)}</option>`),
+    ...S.combos.map(c=>`<option value="co_${c.id}">🎁 ${c.nombre} — ${fmt(c.precioFinal)}</option>`)
+  ].join('');
+  if(!allItems) { toast('⚠️ Cargá platos primero'); return; }
+  const div=document.createElement('div'); div.style.cssText='display:grid;grid-template-columns:1fr 70px 26px;gap:.4rem;align-items:center;margin-bottom:.3rem;';
+  div.innerHTML=`<select class="pedido-item" style="padding:.42rem .6rem;background:var(--dark);border:1px solid var(--border);border-radius:7px;color:var(--white);font-size:.78rem;" onchange="updateMesaPreview()"><option value="">— Ítem —</option>${allItems}</select><input type="number" min="1" value="1" class="pedido-cant" placeholder="Cant" style="padding:.42rem .6rem;background:var(--dark);border:1px solid var(--border);border-radius:7px;color:var(--white);font-size:.78rem;" oninput="updateMesaPreview()"/><button class="ing-del" onclick="this.parentElement.remove();updateMesaPreview()">✕</button>`;
+  document.getElementById('pedidoList').appendChild(div);
+}
+
+function updateMesaPreview() {
+  let sub=0;
+  document.querySelectorAll('#pedidoList .pedido-item').forEach((sel,i)=>{
+    const cant=parseFloat(document.querySelectorAll('#pedidoList .pedido-cant')[i].value)||1;
+    if(sel.value.startsWith('pl_')) { const pl=S.platos.find(p=>p.id==sel.value.replace('pl_','')); if(pl) sub+=pl.precio*cant; }
+    if(sel.value.startsWith('co_')) { const co=S.combos.find(c=>c.id==sel.value.replace('co_','')); if(co) sub+=co.precioFinal*cant; }
+  });
+  const desc=parseFloat(document.getElementById('me-desc').value)||0;
+  const descMonto=sub*desc/100;
+  const total=sub-descMonto;
+  document.getElementById('mpSub').textContent=fmt(sub);
+  document.getElementById('mpDesc').textContent=fmt(descMonto);
+  document.getElementById('mpTotal').textContent=fmt(total);
+}
+
+function saveMesa() {
+  const num=parseInt(document.getElementById('me-num').value)||1;
+  let sub=0; const items=[];
+  document.querySelectorAll('#pedidoList .pedido-item').forEach((sel,i)=>{
+    const cant=parseFloat(document.querySelectorAll('#pedidoList .pedido-cant')[i].value)||1;
+    let nombre='',precio=0;
+    if(sel.value.startsWith('pl_')) { const pl=S.platos.find(p=>p.id==sel.value.replace('pl_','')); if(pl){nombre=pl.nombre;precio=pl.precio;} }
+    if(sel.value.startsWith('co_')) { const co=S.combos.find(c=>c.id==sel.value.replace('co_','')); if(co){nombre='🎁 '+co.nombre;precio=co.precioFinal;} }
+    if(nombre){ sub+=precio*cant; items.push({nombre,precio,cant}); }
+  });
+  const desc=parseFloat(document.getElementById('me-desc').value)||0;
+  const total=sub*(1-desc/100);
+  S.mesas.push({id:uid(),mesa:num,comensales:parseInt(document.getElementById('me-com').value)||1,turno:document.getElementById('me-turno').value,fecha:document.getElementById('me-fecha').value||'hoy',hora:document.getElementById('me-hora').value||'—',canal:document.getElementById('me-canal').value,items,subtotal:sub,descuento:desc,total,estado:'cerrada'});
+  document.getElementById('pedidoList').innerHTML='';
+  ['me-num','me-com','me-desc'].forEach(id=>document.getElementById(id).value='');
+  closeModal('mNuevaMesa'); renderVentas(); toast('✅ Mesa cerrada');
+}
+
+// ══ COMPRAS ══
+function addCompraInsumo() {
+  const opts=S.materia.map(m=>`<option value="${m.id}">${m.nombre} (${m.unidad})</option>`).join('');
+  const div=document.createElement('div'); div.style.cssText='display:grid;grid-template-columns:1fr 80px 26px;gap:.4rem;align-items:center;margin-bottom:.3rem;';
+  div.innerHTML=`<select class="ci-sel" style="padding:.42rem .6rem;background:var(--dark);border:1px solid var(--border);border-radius:7px;color:var(--white);font-size:.78rem;"><option value="">— Insumo —</option>${opts}</select><input type="number" step="0.01" placeholder="Cant." class="ci-cant" style="padding:.42rem .6rem;background:var(--dark);border:1px solid var(--border);border-radius:7px;color:var(--white);font-size:.78rem;"/><button class="ing-del" onclick="this.parentElement.remove()">✕</button>`;
+  document.getElementById('compraInsumos').appendChild(div);
+}
+function saveCompra() {
+  const prov=document.getElementById('cp-prov').value.trim();
+  if(!prov) return alert('Ingresá el proveedor');
+  const insumos=[];
+  document.querySelectorAll('#compraInsumos .ci-sel').forEach((sel,i)=>{
+    const id=parseInt(sel.value), cant=parseFloat(document.querySelectorAll('#compraInsumos .ci-cant')[i].value)||0;
+    if(id&&cant) insumos.push({id,cant});
+  });
+  S.compras.push({id:uid(),proveedor:prov,fecha:document.getElementById('cp-fecha').value||'hoy',insumos,total:parseFloat(document.getElementById('cp-total').value)||0,estado:document.getElementById('cp-estado').value});
+  document.getElementById('cp-prov').value=''; document.getElementById('cp-total').value=''; document.getElementById('compraInsumos').innerHTML='';
+  closeModal('mCompra'); renderCompras(); toast('✅ Compra registrada');
+}
+function delCompra(i) { S.compras.splice(i,1); renderCompras(); }
+
+// ══ MERMA ══
+function populateMermaSelects() {
+  const mpOpts=S.materia.map(m=>`<option value="${m.id}">${m.nombre}</option>`).join('');
+  const plOpts=S.platos.map(p=>`<option value="${p.id}">${p.nombre}</option>`).join('');
+  const mi=document.getElementById('mi-ins'); if(mi) mi.innerHTML=mpOpts||'<option>— Sin insumos —</option>';
+  const mp=document.getElementById('mp2-plato'); if(mp) mp.innerHTML=plOpts||'<option>— Sin platos —</option>';
+}
+function saveMermaInsumo() {
+  const mpId=parseInt(document.getElementById('mi-ins').value);
+  const mp=S.materia.find(m=>m.id===mpId);
+  const cant=parseFloat(document.getElementById('mi-cant').value)||0;
+  if(!mp||!cant) return;
+  S.merma.push({tipo:'insumo',nombre:mp.nombre,unidad:mp.unidad,cant,costo:mp.precio*cant,fecha:document.getElementById('mi-fecha').value||'hoy',motivo:document.getElementById('mi-motivo').value});
+  document.getElementById('mi-cant').value='';
+  closeModal('mMermaInsumo'); renderMerma(); toast('✅ Merma registrada');
+}
+function saveMermaPlato() {
+  const plId=parseInt(document.getElementById('mp2-plato').value);
+  const pl=S.platos.find(p=>p.id===plId);
+  const cant=parseFloat(document.getElementById('mp2-cant').value)||0;
+  if(!pl||!cant) return;
+  const costo=calcCostoPlato(pl)*cant;
+  S.merma.push({tipo:'plato',nombre:pl.nombre,unidad:'unid.',cant,costo,fecha:document.getElementById('mp2-fecha').value||'hoy',motivo:document.getElementById('mp2-motivo').value});
+  document.getElementById('mp2-cant').value='';
+  closeModal('mMermaPlato'); renderMerma(); toast('✅ Merma registrada');
+}
+
+// ══ GASTOS FIJOS ══
+function saveGastoFijo() {
+  const n=document.getElementById('gf-n').value.trim(), m=parseFloat(document.getElementById('gf-monto').value);
+  if(!n||!m) return alert('Completá concepto y monto');
+  S.gastosFijos.push({id:uid(),nombre:n,cat:document.getElementById('gf-cat').value,monto:m,venc:document.getElementById('gf-venc').value||'—',estado:document.getElementById('gf-estado').value});
+  document.getElementById('gf-n').value=''; document.getElementById('gf-monto').value=''; document.getElementById('gf-venc').value='';
+  closeModal('mGastoFijo'); renderGF(); toast('✅ Gasto guardado');
+}
+function delGF(i) { S.gastosFijos.splice(i,1); renderGF(); }
+
+// ══ MODALS ══
+function openModal(id) { document.getElementById(id).classList.add('open'); populateMermaSelects(); }
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+
+// ══ TOAST ══
+function toast(msg) {
+  const t=document.createElement('div');
+  t.textContent=msg;
+  t.style.cssText='position:fixed;bottom:1.5rem;left:50%;transform:translateX(-50%);background:#1C2535;border:1px solid #2A3A55;color:#E8EDF5;padding:.65rem 1.3rem;border-radius:8px;font-size:.8rem;z-index:9999;font-family:DM Sans,sans-serif;box-shadow:0 4px 20px rgba(0,0,0,.5)';
+  document.body.appendChild(t);
+  setTimeout(()=>t.remove(),2500);
+}
+
+// ══ SEED ══
+function seed() {
+  S.materia=[
+    {id:1,nombre:'Carne vacuna (nalga)',cat:'Carnes y proteínas',precio:3200,unidad:'kg',proveedor:'Frigorífico El Campo',stockMin:5,fecha:'hoy'},
+    {id:2,nombre:'Harina 000',cat:'Harinas y cereales',precio:680,unidad:'kg',proveedor:'Molinos Río de la Plata',stockMin:10,fecha:'hoy'},
+    {id:3,nombre:'Huevo',cat:'Lácteos',precio:280,unidad:'doc',proveedor:'Granja San Martín',stockMin:3,fecha:'hoy'},
+    {id:4,nombre:'Aceite girasol',cat:'Aceites y condimentos',precio:1400,unidad:'l',proveedor:'Casa Central',stockMin:5,fecha:'hoy'},
+    {id:5,nombre:'Tomate triturado',cat:'Verduras y frutas',precio:420,unidad:'kg',proveedor:'Verdulería Norte',stockMin:3,fecha:'hoy'},
+    {id:6,nombre:'Muzzarella',cat:'Lácteos',precio:4800,unidad:'kg',proveedor:'Lácteos Del Valle',stockMin:2,fecha:'hoy'},
+    {id:7,nombre:'Pan de miga',cat:'Harinas y cereales',precio:950,unidad:'kg',proveedor:'Panadería Central',stockMin:2,fecha:'hoy'},
+    {id:8,nombre:'Papa',cat:'Verduras y frutas',precio:380,unidad:'kg',proveedor:'Verdulería Norte',stockMin:5,fecha:'hoy'},
+  ];
+  S.platos=[
+    {id:10,nombre:'Milanesa napolitana',canal:'Salón',precio:4800,merma:8,ingredientes:[{id:1,cant:0.25},{id:2,cant:0.08},{id:3,cant:0.083},{id:4,cant:0.02},{id:5,cant:0.1},{id:6,cant:0.12}],ventasMes:320},
+    {id:11,nombre:'Sanguche de milanesa',canal:'Take away',precio:2800,merma:6,ingredientes:[{id:1,cant:0.18},{id:2,cant:0.06},{id:3,cant:0.083},{id:4,cant:0.015},{id:7,cant:0.1}],ventasMes:240},
+    {id:12,nombre:'Papas fritas',canal:'Todos',precio:1800,merma:15,ingredientes:[{id:4,cant:0.05},{id:8,cant:0.35}],ventasMes:410},
+    {id:13,nombre:'Pizza muzzarella',canal:'Salón',precio:3600,merma:5,ingredientes:[{id:2,cant:0.25},{id:4,cant:0.02},{id:5,cant:0.15},{id:6,cant:0.18}],ventasMes:195},
+  ];
+  S.combos=[
+    {id:20,nombre:'Combo Almuerzo',canal:'Salón',platos:[{id:10,cant:1},{id:12,cant:1}],precioFinal:5800,ventasMes:85},
+  ];
+  S.mesas=[
+    {id:30,mesa:3,comensales:4,turno:'Mediodía',fecha:'hoy',hora:'13:15',canal:'Salón',items:[{nombre:'Milanesa napolitana',precio:4800,cant:2},{nombre:'Papas fritas',precio:1800,cant:2}],subtotal:13200,descuento:0,total:13200,estado:'cerrada'},
+    {id:31,mesa:5,comensales:2,turno:'Noche',fecha:'hoy',hora:'21:00',canal:'Salón',items:[{nombre:'Pizza muzzarella',precio:3600,cant:1},{nombre:'🎁 Combo Almuerzo',precio:5800,cant:1}],subtotal:9400,descuento:10,total:8460,estado:'cerrada'},
+  ];
+  S.gastosFijos=[
+    {id:40,nombre:'Alquiler local',cat:'Alquiler',monto:180000,venc:'30/05',estado:'Pendiente'},
+    {id:41,nombre:'Personal (3 empleados)',cat:'Personal',monto:320000,venc:'30/05',estado:'Pendiente'},
+    {id:42,nombre:'Luz y gas',cat:'Servicios',monto:45000,venc:'15/05',estado:'Pagado'},
+    {id:43,nombre:'Internet y teléfono',cat:'Servicios',monto:8500,venc:'20/05',estado:'Pagado'},
+  ];
+  S.compras=[
+    {id:50,proveedor:'Frigorífico El Campo',fecha:'ayer',insumos:[{id:1,cant:10}],total:32000,estado:'Pagado'},
+  ];
+  S.merma=[
+    {tipo:'insumo',nombre:'Tomate triturado',unidad:'kg',cant:0.5,costo:210,fecha:'hoy',motivo:'Vencimiento'},
+  ];
+  nextId=200;
+}
+
+// ══ INIT ══
+document.getElementById('tbDate').textContent=new Date().toLocaleDateString('es-AR',{weekday:'short',day:'numeric',month:'short'});
+document.getElementById('me-fecha').valueAsDate=new Date();
+document.getElementById('mi-fecha').valueAsDate=new Date();
+document.getElementById('mp2-fecha').valueAsDate=new Date();
+document.getElementById('cp-fecha').valueAsDate=new Date();
+document.getElementById('gf-venc').valueAsDate=new Date();
+seed();
+renderDash();
+</script>
+</body>
+</html>
